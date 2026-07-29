@@ -36,11 +36,9 @@ jobs:
       # -----------------------------
       # Setup pnpm
       #
-      # 自动读取 package.json:
-      #
+      # 使用 package.json:
       # "packageManager": "pnpm@10.15.0"
       #
-      # 不在这里指定版本
       # -----------------------------
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -77,14 +75,14 @@ jobs:
       # -----------------------------
       - name: Verify build output
         run: |
-          if [ ! -d "docs/.vitepress/dist" ]; then
-            echo "ERROR: docs/.vitepress/dist not found"
+          if [ ! -d ".vitepress/dist" ]; then
+            echo "ERROR: .vitepress/dist not found"
             exit 1
           fi
 
           echo "Build output:"
-          du -sh docs/.vitepress/dist
-          ls -lah docs/.vitepress/dist | head -50
+          du -sh .vitepress/dist
+          ls -lah .vitepress/dist | head -50
 
 
       # -----------------------------
@@ -96,4 +94,4 @@ jobs:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
           projectName: rust-web-tutorial
-          directory: docs/.vitepress/dist
+          directory: .vitepress/dist
