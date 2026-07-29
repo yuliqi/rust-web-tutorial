@@ -35,12 +35,15 @@ jobs:
 
       # -----------------------------
       # Setup pnpm
-      # 必须在 setup-node cache pnpm 前
+      #
+      # 自动读取 package.json:
+      #
+      # "packageManager": "pnpm@10.15.0"
+      #
+      # 不在这里指定版本
       # -----------------------------
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
 
       # -----------------------------
@@ -70,17 +73,18 @@ jobs:
 
 
       # -----------------------------
-      # Verify output
+      # Verify build output
       # -----------------------------
       - name: Verify build output
         run: |
           if [ ! -d "docs/.vitepress/dist" ]; then
-            echo "Build output not found"
+            echo "ERROR: docs/.vitepress/dist not found"
             exit 1
           fi
 
           echo "Build output:"
-          ls -lah docs/.vitepress/dist
+          du -sh docs/.vitepress/dist
+          ls -lah docs/.vitepress/dist | head -50
 
 
       # -----------------------------
@@ -89,7 +93,7 @@ jobs:
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
           projectName: rust-web-tutorial
           directory: docs/.vitepress/dist
