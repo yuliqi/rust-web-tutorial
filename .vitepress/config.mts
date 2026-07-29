@@ -26,6 +26,9 @@ export default defineConfig({
     /^http:\/\/\d+\.\d+\.\d+\.\d+/,
   ],
   themeConfig: {
+    socialLinks: [
+      { icon: 'github', link: 'https://github.com/yuliqi/rust-web-tutorial' }
+    ],
     nav: [
       { text: '首页', link: '/' },
       { text: '章节', link: '/README' },

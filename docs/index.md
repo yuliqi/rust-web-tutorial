@@ -9,9 +9,9 @@ hero:
     - theme: brand
       text: 开始学习
       link: /README
-    # - theme: alt
-    #   text: GitHub 仓库
-    #   link: https://github.com/
+    - theme: alt
+      text: 示例下载
+      link: https://github.com/yuliqi/rust-web-tutorial
 
 features:
   - title: 现代 Rust 工程实践
