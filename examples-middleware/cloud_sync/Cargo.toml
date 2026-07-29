@@ -1,0 +1,31 @@
+# 第 22 章综合示例：多云资产同步引擎。
+# 这个 crate 把教程后半的多个中间件概念「总装」到一个 SaaS 场景里：
+# - aes-gcm + hmac + sha2：加密存云 AK/SK（同第 20 章 db_crypto 的字段加密思路）
+# - redis：抢分布式锁做集群去重（第 21 章）+ 计数限流保护云厂商配额（第 18 章）
+# - sqlx(postgres)：多租户资产表 + 凭证表，upsert 归一化入库（第 17 章多租户隔离）
+# - axum + serde：最小演示路由（触发同步 / 列资产）
+# 依赖全部来自 workspace 已有声明，没有引入任何新 crate；mock provider 不真连网络。
+[package]
+name = "cloud_sync"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+# 与 todo_api_pg 相同：workspace 只声明公共 feature（runtime-tokio + tls-rustls），
+# postgres 驱动 feature 由用到它的 crate 自己追加。
+sqlx = { workspace = true, features = ["postgres"] }
+redis = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+aes-gcm = { workspace = true }
+hmac = { workspace = true }
+sha2 = { workspace = true }
+base64 = { workspace = true }
+axum = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }

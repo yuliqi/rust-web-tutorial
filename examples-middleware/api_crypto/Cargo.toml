@@ -1,0 +1,32 @@
+[package]
+name = "api_crypto"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+axum = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+# —— 加密三件套 ——
+# rsa：解开客户端用公钥封的「会话 AES 密钥」（RSA-OAEP-SHA256）。
+rsa = { workspace = true }
+# aes-gcm：请求/响应体的对称加密（AEAD：密文被篡改一个比特都会解密失败）。
+aes-gcm = { workspace = true }
+# rand：给 RSA-OAEP 提供随机源（OAEP 填充本身需要随机数）。
+rand = { workspace = true }
+# sha2：OAEP 的哈希参数（要与前端 Web Crypto 的 hash: "SHA-256" 一致）。
+sha2 = { workspace = true }
+base64 = { workspace = true }
+
+[dev-dependencies]
+# oneshot 在 tower 的 "util" feature 里，只有测试用得到，所以放 dev-dependencies。
+tower = { workspace = true, features = ["util"] }
+http-body-util = { workspace = true }

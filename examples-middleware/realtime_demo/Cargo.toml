@@ -1,0 +1,35 @@
+[package]
+name = "realtime_demo"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+# axum 的 ws feature 才会编进 WebSocket 升级相关的类型（WebSocketUpgrade / Message）。
+# 默认 feature 里没有它，忘开会报「找不到 WebSocketUpgrade」。
+axum = { workspace = true, features = ["ws"] }
+# 本 crate 不碰 Postgres/Redis：实时推送是纯内存的连接管理 + 广播，
+# 用不着外部存储。这也是它能默认跑全部测试、不依赖 docker compose 的原因。
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+# tokio-stream 的 BroadcastStream 把 broadcast::Receiver 适配成 Stream，
+# 直接喂给 axum 的 Sse。sync feature 才含这个 wrapper。
+tokio-stream = { version = "0.1", features = ["sync"] }
+# tower-http 的 trace/CorsLayer 这里只用最基本的日志；保持与其他示例一致。
+tower-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+# futures-util：WebSocket 的读写两半是 Stream/Sink，split()、next()、send() 都来自它。
+futures-util = "0.3"
+
+[dev-dependencies]
+# tokio-tungstenite：集成测试里当「浏览器」用的 WebSocket 客户端，
+# 主动连上我们起的 axum 服务，验证「服务端推的消息真的能收到」。
+# 版本对齐 axum 0.8 内部使用的 tungstenite（0.26），避免协议类型两套并存。
+tokio-tungstenite = "0.26"
+# reqwest：SSE 的集成测试用普通 HTTP 客户端读事件流（SSE 就是长连接的 HTTP，
+# 无需专用客户端）。只开 stream，避免拉入 TLS 等重依赖。
+reqwest = { version = "0.12", default-features = false, features = ["stream"] }

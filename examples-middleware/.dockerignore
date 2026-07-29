@@ -1,0 +1,6 @@
+# 构建上下文瘦身：target 有几个 GB，绝不能进上下文
+target/
+**/*.md
+.dockerignore
+docker-compose.yml
+deploy/

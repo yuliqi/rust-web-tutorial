@@ -1,0 +1,39 @@
+# 第 29 章配套示例：应用商店与插件机制。
+# 面板类软件（如 1Panel）有两个横向扩展维度，本 crate 各给一个能跑、可测的最小实现：
+#
+# - 应用商店（appstore.rs）：一键装应用。1Panel 里「应用」本质是一份 docker-compose 模板，
+#   安装 = 用户填参数 → 把参数渲染进模板 → docker compose up 起容器。
+#   本示例只做「渲染 + 记录」这段纯逻辑（不真起 Docker，真跑走文档），重点讲模板注入的防线。
+#
+# - 插件机制（plugin.rs）：第三方扩展面板本身。采用「子进程 + stdio JSON-RPC」方案——
+#   宿主 spawn 一个插件进程，用它的 stdin/stdout 收发 JSON-RPC。样例插件是本 crate 的
+#   第二个 bin（sample_plugin），集成测试能真 spawn、真通信。
+#
+# 全程无需 Postgres/Redis/Docker，`cargo test -p plugin_demo` 默认全绿。
+[package]
+name = "plugin_demo"
+# 本 crate 有两个 bin（主程序 plugin_demo + 样例插件 sample_plugin）。
+# 指定 default-run，`cargo run -p plugin_demo` 才不必再 --bin 选择。
+default-run = "plugin_demo"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+# 插件宿主用 tokio::process 起子进程并异步读写它的 stdio；axum 路由也在 tokio 上跑。
+# workspace 的 tokio 开了 "full"，process / io-util / sync 等 feature 都已包含。
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+axum = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[dev-dependencies]
+# 集成测试用 axum 的内存直连（oneshot）发 HTTP 请求，无需真正监听端口。
+tower = { workspace = true, features = ["util"] }
+http-body-util = { workspace = true }

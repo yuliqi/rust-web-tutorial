@@ -1,0 +1,8 @@
+[package]
+name = "ch07_modules_bin"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97"
+
+[dependencies]
+ch07_modules_lib = { path = "../ch07_modules_lib" }

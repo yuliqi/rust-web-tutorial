@@ -1,0 +1,78 @@
+[workspace]
+resolver = "2"
+members = [
+  "todo_api_pg",
+  "todo_api_saas",
+  "mysql_demo",
+  "redis_cache",
+  "mq_rabbit",
+  "cluster_demo",
+  "api_crypto",
+  "db_crypto",
+  "scheduler_demo",
+  "cloud_sync",
+  "iam_demo",
+  "license_demo",
+  "realtime_demo",
+  "webterm_demo",
+  "cert_demo",
+  "plugin_demo",
+  "monitor_demo",
+]
+
+# 生产构建优化（见第 16 章）：lto 跨 crate 内联，strip 去调试符号减体积
+[profile.release]
+lto = "thin"
+strip = true
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.97"
+license = "MIT"
+version = "0.1.0"
+
+# 独立于 ../examples 的第二个 workspace：
+# 这里的示例依赖外部服务（Postgres/MySQL/Redis/RabbitMQ），
+# 单独成 workspace 是为了不拖慢主教程的编译与测试。
+# 服务用同目录的 docker-compose.yml 一键启动。
+[workspace.dependencies]
+anyhow = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+axum = "0.8"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+sqlx = { version = "0.8", features = ["runtime-tokio", "tls-rustls"] }
+redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
+# etcd-client：纯 Rust 的 etcd v3 客户端（基于 tonic/gRPC），用于服务注册与发现示例。
+etcd-client = "0.19"
+lapin = "2"
+futures-lite = "2"
+http-body-util = "0.1"
+# —— 第 17-18 章 SaaS 示例（todo_api_saas）——
+# jsonwebtoken：JWT 的签发与校验（HS256 对称签名足够教学；生产多用 RS256 便于多服务共享公钥验签）。
+jsonwebtoken = "9"
+# argon2：当前推荐的密码哈希算法（抗 GPU 暴力破解），内置随机盐与参数编码。
+argon2 = "0.5"
+# hmac + sha2：webhook 验签用的 HMAC-SHA256（支付商回调的行业标准做法）。
+hmac = "0.12"
+sha2 = "0.10"
+# —— 第 19 章 API 报文加密示例（api_crypto）——
+# rsa：纯 Rust 的 RSA 实现，这里用 RSA-OAEP(SHA-256) 加密「会话 AES 密钥」。
+# 注意 0.9 系配套的是 rand_core 0.6，所以 rand 也钉在 0.8（rand 0.9 换了 rand_core 0.9，不兼容）。
+rsa = "0.9"
+# aes-gcm：AEAD 对称加密（加密 + 完整性校验一体），报文体的实际加密算法。
+aes-gcm = "0.10"
+rand = "0.8"
+# base64：密文是二进制，进 JSON 前要编码成文本。
+base64 = "0.22"
+# —— 第 21 章 定时任务与后台作业示例（scheduler_demo）——
+# tokio-cron-scheduler：按 cron 表达式在 tokio 上触发异步任务；内部会拉入
+# chrono/uuid/cron 等传递依赖，cargo 自动解析。
+tokio-cron-scheduler = "0.14"
+# tokio-util：这里用它的 CancellationToken 做优雅停机的取消信号（接第 16 章）。
+tokio-util = { version = "0.7", features = ["rt"] }

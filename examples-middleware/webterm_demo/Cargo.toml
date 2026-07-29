@@ -1,0 +1,27 @@
+[package]
+name = "webterm_demo"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+# axum 的 ws feature 才编进 WebSocket 升级相关类型（WebSocketUpgrade / Message）。
+# Web 终端的「浏览器输入 ↔ 服务端 PTY 输出」双向流动全靠它，忘开会报找不到类型。
+axum = { workspace = true, features = ["ws"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+# 会话录制 / 访问审计写 Postgres（schema bastion）——堡垒机的灵魂是「可审计」。
+sqlx = { workspace = true, features = ["postgres"] }
+# futures-util：WebSocket 的读写两半是 Stream/Sink，split()/next()/send() 都来自它。
+futures-util = "0.3"
+# portable-pty：跨平台伪终端（PTY）。真正开一个 pty 并 spawn shell，
+# 拿到 master 端的读/写句柄——这是「真终端体验」（行编辑、信号、颜色、尺寸）的必需，
+# 见 pty.rs 里 PTY vs 普通管道的对比。0.9 是当前稳定版。
+portable-pty = "0.9"

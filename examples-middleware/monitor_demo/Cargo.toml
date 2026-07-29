@@ -1,0 +1,38 @@
+# 第 28 章配套示例：实时监控与告警。
+# 面板 / SaaS 要能看到服务器和业务的实时状态（CPU / 内存 / 磁盘 / 负载），异常时告警。
+# 本 crate 的链路：采集系统指标 → 以 Prometheus 文本格式暴露（给抓取）+ 通过 SSE（第 24 章）
+# 实时推给浏览器仪表盘 → 按阈值规则产生告警。核心的「渲染」与「告警判定」是纯函数，
+# 默认可离线穷尽单测；时序落库依赖 Postgres，做成 #[ignore] 的集成测试。
+[package]
+name = "monitor_demo"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+axum = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+# 时序落库是可选能力（集成测试才用），但类型（PgPool 等）在 store.rs 里要编进来，
+# 所以 sqlx 常规依赖、开 postgres feature，与 todo_api_pg 一致。
+# 额外开 "json"：labels 列是 JSONB，绑定/读取 serde_json::Value 需要这个 feature。
+sqlx = { workspace = true, features = ["postgres", "json"] }
+tokio = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+# tokio-stream 的 BroadcastStream：把 broadcast::Receiver 适配成 Stream 直接喂给 axum 的 Sse。
+# sync feature 才含这个 wrapper（与 realtime_demo 保持一致）。
+tokio-stream = { version = "0.1", features = ["sync"] }
+futures-util = "0.3"
+# sysinfo：跨平台读系统指标（CPU / 内存 / 磁盘 / 负载）的事实标准库。0.33 提供
+# global_cpu_usage() 等新 API，MSRV 也在本仓库工具链（1.97）之下，能直接编译。
+# 它把「各操作系统五花八门的取指方式」统一成一套 API——这正是我们不自己去读
+# /proc、WMI、sysctl 的原因（那些平台差异极大、易错）。
+sysinfo = "0.33"
+
+[dev-dependencies]
+# 集成测试里用 tokio 的宏与运行时（单测的 async 也用得到）。
+tokio = { workspace = true }

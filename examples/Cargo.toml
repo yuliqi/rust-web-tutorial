@@ -1,0 +1,40 @@
+[workspace]
+resolver = "2"
+members = [
+  "ch01_basics",
+  "ch02_ownership",
+  "ch03_structs_enums",
+  "ch04_errors",
+  "ch05_collections",
+  "ch06_traits",
+  "ch07_modules_lib",
+  "ch07_modules_bin",
+  "ch08_testing",
+  "ch09_smart_pointers",
+  "ch10_async",
+  "ch11_http_client",
+  "todo_api",
+]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.97"
+license = "MIT"
+version = "0.1.0"
+
+[workspace.dependencies]
+anyhow = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# HTTP client: 0.12 与当前 axum/tower 生态兼容性最稳；可后续评估 0.13
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+axum = "0.8"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+# sqlx 0.8 为教程默认；0.9 可在独立分支验证后升级
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite"] }
+http-body-util = "0.1"

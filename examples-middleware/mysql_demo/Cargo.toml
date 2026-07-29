@@ -1,0 +1,15 @@
+[package]
+name = "mysql_demo"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+# workspace 里的 sqlx 只带了运行时和 TLS，具体连哪种数据库由各 crate 自己点名：
+# 这里加 "mysql" feature，编译出来的 sqlx 才认识 mysql:// 开头的 URL。
+sqlx = { workspace = true, features = ["mysql"] }

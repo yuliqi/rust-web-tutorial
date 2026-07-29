@@ -1,0 +1,33 @@
+# 第 25 章配套示例：软件许可授权（License / Activation）。
+# 演示商业软件防盗用、按授权范围与期限使用的两条主流技术路线：
+# - 离线签名授权（license.rs）：厂商私钥签发 license 文件，客户端内置公钥离线验签，
+#   断网也能校验「是谁、什么版本、到什么时候、绑哪台机器」。适合私有化/内网部署。
+# - 在线激活（activation.rs）：客户端向厂商激活服务器 activate / heartbeat，
+#   厂商可远程吊销、按机器数计量。适合 SaaS 或需要远程控制的场景。
+# 两者常常结合：离线签名保底可用，在线激活增强管控。
+[package]
+name = "license_demo"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+thiserror = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+base64 = { workspace = true }
+rand = { workspace = true }
+axum = { workspace = true }
+# ed25519-dalek：Ed25519 数字签名（Curve25519 上的 EdDSA）。
+# 选它而不是 RSA：密钥短（私钥/公钥各 32 字节，签名 64 字节）、验签快、无参数可踩坑，
+# 非常适合「license 里塞一小段签名 + 客户端内置一个短公钥」这种场景。
+# 2.x 的密钥生成走 rand_core 0.6，与 workspace 钉的 rand 0.8 兼容，所以打开 rand_core feature。
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+
+[dev-dependencies]
+# 集成测试用 axum 的内存直连（oneshot）发请求，无需真正监听端口，默认全跑。
+tower = { workspace = true, features = ["util"] }
+http-body-util = { workspace = true }

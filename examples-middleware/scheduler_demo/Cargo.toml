@@ -1,0 +1,20 @@
+[package]
+name = "scheduler_demo"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+# redis：抢分布式锁用；connection-manager 提供可克隆、自动重连的连接句柄。
+redis = { workspace = true }
+# sqlx(postgres)：把「每次触发」落库，唯一约束做去重的第二道防线。
+sqlx = { workspace = true, features = ["postgres"] }
+tokio = { workspace = true }
+# tokio-cron-scheduler：run_cron_job 按 cron 表达式触发；离线单测也用它校验表达式合法性。
+tokio-cron-scheduler = { workspace = true }
+# tokio-util：CancellationToken 承载优雅停机的取消信号。
+tokio-util = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }

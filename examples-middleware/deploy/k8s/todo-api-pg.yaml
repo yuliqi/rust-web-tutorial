@@ -1,0 +1,77 @@
+# 第 16 章配套：todo_api_pg 的最小可用 k8s 清单（Deployment + Service）。
+# 每个字段的「为什么」都在注释里——这份文件的目的是讲清概念，
+# 真实集群还会叠加 Ingress、HPA、NetworkPolicy、PodDisruptionBudget 等。
+#
+#   kubectl apply -f deploy/k8s/todo-api-pg.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-api-pg
+  labels:
+    app: todo-api-pg
+spec:
+  replicas: 2                    # 至少 2 副本：滚动更新/单点故障时服务不中断
+  selector:
+    matchLabels:
+      app: todo-api-pg
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0          # 更新时先起新的、就绪后再杀旧的，容量不缩水
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: todo-api-pg
+    spec:
+      containers:
+        - name: todo-api-pg
+          image: todo-api-pg:latest   # 生产用不可变 tag（如 git sha），永远别用 latest
+          ports:
+            - containerPort: 3001
+          env:
+            - name: HOST
+              value: "0.0.0.0"
+            - name: PORT
+              value: "3001"
+            - name: DATABASE_URL     # 敏感配置走 Secret，不进镜像、不进仓库
+              valueFrom:
+                secretKeyRef:
+                  name: todo-api-pg-secrets
+                  key: database-url
+          # 两种探针分工（对应 routes/health.rs 的两个端点）：
+          # liveness 失败 → 重启容器；readiness 失败 → 只摘除流量，不重启
+          livenessProbe:
+            httpGet: { path: /health, port: 3001 }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 3001 }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          # 资源声明是调度和稳定性的基础：requests 决定调度到哪，
+          # limits 防止一个失控实例吃光节点内存拖垮邻居
+          resources:
+            requests: { cpu: 100m, memory: 64Mi }
+            limits: { memory: 256Mi }
+      # 优雅停机的另一半：k8s 先发 SIGTERM（代码里已处理），
+      # 最多等 terminationGracePeriodSeconds 秒再强杀
+      terminationGracePeriodSeconds: 30
+---
+# Service：集群内的稳定访问入口 + 负载均衡。
+# 这就是第 15 章说的「k8s 自带服务发现」：其他服务用
+# http://todo-api-pg:3001 访问，DNS + kube-proxy 自动分发到就绪的 Pod。
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-api-pg
+spec:
+  selector:
+    app: todo-api-pg
+  ports:
+    - port: 3001
+      targetPort: 3001
+---
+# Secret 示例（真实环境用 kubectl create secret / 外部密钥管理，别提交明文）：
+# kubectl create secret generic todo-api-pg-secrets \
+#   --from-literal=database-url='postgres://user:pass@postgres-host:5432/todos'

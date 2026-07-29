@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API 报文加密演示 — 混合加密（RSA-OAEP + AES-GCM）</title>
+<style>
+  /* 教学演示页：无外部依赖，纯原生 HTML/CSS/JS。 */
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    max-width: 1080px; margin: 0 auto; padding: 24px; color: #1f2933;
+    background: #f5f7fa; line-height: 1.6;
+  }
+  h1 { font-size: 22px; }
+  .note {
+    background: #fff8e1; border-left: 4px solid #f5a623;
+    padding: 10px 14px; border-radius: 4px; font-size: 14px; margin: 12px 0;
+  }
+  form {
+    background: #fff; padding: 18px; border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08); margin: 16px 0;
+  }
+  label { display: block; margin: 10px 0 4px; font-size: 14px; font-weight: 600; }
+  input {
+    width: 100%; max-width: 420px; padding: 8px 10px; font-size: 14px;
+    border: 1px solid #cbd2d9; border-radius: 4px;
+  }
+  button {
+    margin-top: 14px; padding: 9px 22px; font-size: 15px; border: 0;
+    border-radius: 4px; background: #2563eb; color: #fff; cursor: pointer;
+  }
+  button:hover { background: #1d4ed8; }
+  .panes { display: flex; gap: 16px; flex-wrap: wrap; }
+  .pane {
+    flex: 1 1 460px; background: #fff; border-radius: 8px; padding: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  }
+  .pane h3 { margin: 0 0 8px; font-size: 15px; }
+  .pane.cipher h3 { color: #b91c1c; }
+  .pane.plain h3 { color: #15803d; }
+  pre {
+    background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 6px;
+    font-size: 12px; overflow-x: auto; white-space: pre-wrap; word-break: break-all;
+    min-height: 80px; margin: 6px 0;
+  }
+  .result {
+    background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 6px;
+    padding: 10px 14px; margin-top: 10px; font-size: 14px; display: none;
+  }
+  .err { color: #b91c1c; font-size: 14px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<h1>API 报文加密演示：混合加密（RSA-OAEP-SHA256 + AES-256-GCM）</h1>
+
+<div class="note">
+  <strong>威胁模型：</strong>TLS 常在网关/代理/WAF 终止，之后的 HTTP 明文会进访问日志与抓包审计。
+  本页把请求体、响应体全程加密，中间节点只能看到密文信封。<br>
+  <strong>边界（诚实声明）：</strong>这不替代 TLS（应叠加使用）；本页 JS 可被逆向，
+  防的是「日志/代理侧的被动泄露」，不是控制了浏览器的端上攻击者。
+</div>
+
+<form id="profile-form">
+  <strong>提交个人资料（这些字段正是不想出现在网关日志里的东西）</strong>
+  <label for="name">姓名</label>
+  <input id="name" value="张三" required>
+  <label for="phone">手机号</label>
+  <input id="phone" value="13800001234" required>
+  <label for="id_card">身份证号</label>
+  <input id="id_card" value="110101199001011234" required>
+  <button type="submit">加密提交</button>
+  <div class="err" id="error"></div>
+  <div class="result" id="result"></div>
+</form>
+
+<div class="panes">
+  <div class="pane cipher">
+    <h3>网络上实际传输的内容（代理/网关日志能看到的全部）</h3>
+    <div>请求信封 POST /api/secure/profile：</div>
+    <pre id="req-cipher">（尚未发送）</pre>
+    <div>响应信封：</div>
+    <pre id="resp-cipher">（尚未发送）</pre>
+  </div>
+  <div class="pane plain">
+    <h3>解密后的明文（只存在于浏览器内存和服务端进程里）</h3>
+    <div>请求内层明文 {ts, data}：</div>
+    <pre id="req-plain">（尚未发送）</pre>
+    <div>响应内层 data：</div>
+    <pre id="resp-plain">（尚未发送）</pre>
+  </div>
+</div>
+
+<div class="note">
+  <strong>亲自确认：</strong>打开 DevTools（F12）→ Network 面板 → 提交一次 →
+  点开 <code>profile</code> 请求，看 Payload 和 Response——两边都只有
+  <code>ek / nonce / ct</code> 三个 base64 字段，找不到任何一处明文手机号。
+  这就是代理与网关日志里会留下的全部内容。
+</div>
+
+<script>
+// ============================================================
+// 前端加密流程，与后端 src/envelope.rs 逐步对应（注释里标了对应函数）。
+// 只用浏览器原生 Web Crypto API，无任何外部库。
+// ============================================================
+
+// 小工具：ArrayBuffer <-> base64（信封里二进制字段一律 base64 文本）。
+function b64encode(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+}
+function b64decode(s) {
+  return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); });
+}
+
+// 第 1 步：取服务端 RSA 公钥并导入。
+// 服务端下发的是 SPKI DER 的 base64，正好是 importKey("spki") 要的格式。
+// 参数必须与后端一致：RSA-OAEP + SHA-256（对应 envelope.rs 的 Oaep::new::<Sha256>()）。
+async function fetchServerPublicKey() {
+  const resp = await fetch('/crypto/public-key');
+  const { spki_b64 } = await resp.json();
+  return crypto.subtle.importKey(
+    'spki',
+    b64decode(spki_b64),
+    { name: 'RSA-OAEP', hash: 'SHA-256' },
+    false,
+    ['encrypt'] // 前端只拿公钥加密；解密能力只在持有私钥的服务端。
+  );
+}
+
+// 第 2 步：生成本次会话的随机 AES-256 密钥。
+// 对应 envelope.rs client_seal_request 里的 Aes256Gcm::generate_key。
+// 返回原始 32 字节（要拿去给 RSA 加密）和导入后的 CryptoKey（本地加解密用）。
+async function generateSessionKey() {
+  const raw = crypto.getRandomValues(new Uint8Array(32)); // 256 bit
+  const key = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']);
+  return { raw, key };
+}
+
+// 第 3 步：封请求信封。对应服务端的 open_request 的镜像操作。
+async function sealRequest(rsaKey, session, data) {
+  // 内层明文 {ts, data}：ts 用于服务端防重放（超过 5 分钟窗口直接拒绝）。
+  const inner = new TextEncoder().encode(JSON.stringify({ ts: Date.now(), data }));
+
+  // AES-GCM 加密正文。nonce(IV) 12 字节随机——GCM 铁律：同一密钥下 nonce 绝不重用。
+  // Web Crypto 输出的密文尾部自带 16 字节认证标签，与 Rust aes-gcm crate 格式一致。
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, session.key, inner);
+
+  // RSA-OAEP 加密「AES 密钥本身」——混合加密的核心一步：
+  // 非对称加密慢且有长度上限，只用来递送 32 字节的对称密钥。
+  const ek = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, rsaKey, session.raw);
+
+  return {
+    envelope: { ek: b64encode(ek), nonce: b64encode(nonce), ct: b64encode(ct) },
+    innerText: new TextDecoder().decode(inner),
+  };
+}
+
+// 第 5 步：拆响应信封。对应 envelope.rs 的 client_open_response。
+// 响应没有 ek——服务端复用了请求带去的 AES 密钥，但 nonce 是服务端新生成的。
+async function openResponse(session, envelope) {
+  const plainBuf = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: b64decode(envelope.nonce) },
+    session.key,
+    b64decode(envelope.ct)
+  );
+  const inner = JSON.parse(new TextDecoder().decode(plainBuf));
+  return inner.data;
+}
+
+// 页面加载即取公钥（公钥是公开的，缓存无妨）。
+const rsaKeyPromise = fetchServerPublicKey();
+
+document.getElementById('profile-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const errEl = document.getElementById('error');
+  const resultEl = document.getElementById('result');
+  errEl.textContent = '';
+  resultEl.style.display = 'none';
+
+  try {
+    const rsaKey = await rsaKeyPromise;
+    const session = await generateSessionKey(); // 每次提交都换新会话密钥
+    const data = {
+      name: document.getElementById('name').value,
+      phone: document.getElementById('phone').value,
+      id_card: document.getElementById('id_card').value,
+    };
+
+    // 封信封并展示：左栏 = 网络上真实传输的密文，右栏 = 只在内存里的明文。
+    const { envelope, innerText } = await sealRequest(rsaKey, session, data);
+    document.getElementById('req-cipher').textContent = JSON.stringify(envelope, null, 2);
+    document.getElementById('req-plain').textContent = JSON.stringify(JSON.parse(innerText), null, 2);
+
+    // 第 4 步：POST 信封。抓包/网关日志此刻看到的就是左栏的内容。
+    const resp = await fetch('/api/secure/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(envelope),
+    });
+    if (!resp.ok) throw new Error('服务端拒绝了信封（HTTP ' + resp.status + '）');
+    const respEnvelope = await resp.json();
+    document.getElementById('resp-cipher').textContent = JSON.stringify(respEnvelope, null, 2);
+
+    // 解密响应并展示脱敏结果。
+    const respData = await openResponse(session, respEnvelope);
+    document.getElementById('resp-plain').textContent = JSON.stringify(respData, null, 2);
+    resultEl.style.display = 'block';
+    resultEl.textContent = '服务端确认收到（脱敏回显）：' + respData.name +
+      ' / ' + respData.masked_phone + ' / ' + respData.masked_id;
+  } catch (err) {
+    errEl.textContent = '出错：' + err.message;
+  }
+});
+</script>
+</body>
+</html>

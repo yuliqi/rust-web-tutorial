@@ -1,0 +1,78 @@
+# 第 16 章配套：GitHub Actions CI（git init 并推到 GitHub 后自动生效）。
+# 质量门禁 = 第 8 章三件套（fmt / clippy / test）跑在每次 push 和 PR 上。
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # 主教程 workspace：无外部依赖，全量测试
+  examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      # 缓存依赖编译产物：CI 提速的第一杠杆
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: examples
+      - name: fmt
+        run: cargo fmt --check
+        working-directory: examples
+      - name: clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+        working-directory: examples
+      - name: test
+        run: cargo test --workspace
+        working-directory: examples
+
+  # 中间件 workspace：用 GitHub Actions 的 service 容器起真实 Postgres/Redis，
+  # 让 #[ignore] 的集成测试也能在 CI 里跑（演示思路，按需增删服务）
+  middleware:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: tutorial
+          POSTGRES_PASSWORD: tutorial
+          POSTGRES_DB: todos
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U tutorial -d todos"
+          --health-interval 2s --health-timeout 3s --health-retries 15
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s --health-timeout 3s --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: examples-middleware
+      - name: fmt
+        run: cargo fmt --check
+        working-directory: examples-middleware
+      - name: clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+        working-directory: examples-middleware
+      - name: test (offline)
+        run: cargo test --workspace
+        working-directory: examples-middleware
+      - name: integration test (postgres + redis)
+        run: |
+          cargo test -p todo_api_pg -- --ignored
+          cargo test -p redis_cache -- --ignored
+        working-directory: examples-middleware

@@ -1,0 +1,16 @@
+[package]
+name = "cluster_demo"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+# etcd-client：etcd v3 的官方推荐 Rust 客户端，租约（lease）/watch 等 API 一应俱全。
+etcd-client = { workspace = true }
+# redis：分布式锁示例用；connection-manager 提供可克隆、自动重连的连接句柄。
+redis = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }

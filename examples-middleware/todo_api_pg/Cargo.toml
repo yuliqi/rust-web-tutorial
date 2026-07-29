@@ -1,0 +1,26 @@
+[package]
+name = "todo_api_pg"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+axum = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+# 差异点：SQLite 版开的是 "sqlite" feature，这里换成 "postgres"。
+# workspace 里只声明了公共部分（runtime-tokio + tls-rustls），
+# 各驱动 feature 由用到它的 crate 自己追加（features 是可加不可减的）。
+sqlx = { workspace = true, features = ["postgres"] }
+tokio = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+http-body-util = { workspace = true }
+
+[dev-dependencies]
+# oneshot 在 tower 的 "util" feature 里，只有测试用得到，所以放 dev-dependencies。
+tower = { workspace = true, features = ["util"] }

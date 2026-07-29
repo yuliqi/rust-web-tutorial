@@ -1,0 +1,33 @@
+[package]
+name = "todo_api_saas"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+axum = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sqlx = { workspace = true, features = ["postgres"] }
+tokio = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+# 差异点（对比 todo_api_pg）：SaaS 版多出四类依赖，正好对应四个新能力——
+# redis：按租户限流 + 幂等键（第 18 章）；
+redis = { workspace = true }
+# jsonwebtoken：登录后签发/校验 JWT（第 17 章鉴权）；
+jsonwebtoken = { workspace = true }
+# argon2：密码哈希（绝不存明文，见 auth.rs）；
+argon2 = { workspace = true }
+# hmac + sha2：计费 webhook 的 HMAC-SHA256 验签（第 18 章）。
+hmac = { workspace = true }
+sha2 = { workspace = true }
+
+[dev-dependencies]
+# oneshot 在 tower 的 "util" feature 里；http-body-util 用来收集响应体——都只有测试用。
+tower = { workspace = true, features = ["util"] }
+http-body-util = { workspace = true }

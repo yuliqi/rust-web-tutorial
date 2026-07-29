@@ -1,0 +1,9 @@
+[package]
+name = "ch04_errors"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97"
+
+[dependencies]
+anyhow = { workspace = true }
+thiserror = { workspace = true }

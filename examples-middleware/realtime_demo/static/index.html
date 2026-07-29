@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>实时通信演示 · WebSocket + SSE</title>
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      margin: 0; padding: 1.5rem; line-height: 1.5;
+      background: #f6f7f9; color: #1a1a1a;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { background: #16181d; color: #e6e6e6; }
+      .card { background: #21242b !important; border-color: #2f333c !important; }
+      input, button { background: #2b2f37; color: #e6e6e6; border-color: #3a3f49; }
+      .log { background: #14161a !important; }
+    }
+    h1 { font-size: 1.3rem; margin: 0 0 .3rem; }
+    p.hint { margin: 0 0 1.2rem; color: #888; font-size: .9rem; }
+    .row { display: flex; gap: .5rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+    input { flex: 1; min-width: 12rem; padding: .55rem .7rem; border: 1px solid #d0d4da; border-radius: 8px; font-size: 1rem; }
+    button { padding: .55rem 1rem; border: 1px solid #d0d4da; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+    button:hover { opacity: .85; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: #fff; border: 1px solid #e3e6ea; border-radius: 12px; padding: 1rem; }
+    .card h2 { font-size: 1rem; margin: 0 0 .2rem; display: flex; align-items: center; gap: .5rem; }
+    .card small { color: #999; }
+    .dot { width: .6rem; height: .6rem; border-radius: 50%; background: #bbb; display: inline-block; }
+    .dot.on { background: #2ecc71; }
+    .dot.off { background: #e74c3c; }
+    .log { margin-top: .7rem; height: 300px; overflow-y: auto; background: #f2f3f5; border-radius: 8px; padding: .6rem; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .82rem; }
+    .log div { padding: .15rem 0; border-bottom: 1px dashed rgba(128,128,128,.2); word-break: break-all; }
+    .k { color: #8a63d2; font-weight: 600; }
+    .ts { color: #999; }
+  </style>
+</head>
+<body>
+  <h1>实时通信演示：WebSocket + SSE 广播</h1>
+  <p class="hint">
+    本页同时建立一条 <b>WebSocket</b>（双向）和一条 <b>SSE</b>（单向服务端推送）连接。
+    在下面输入内容发送，会广播给<b>所有</b>打开本页的标签页——
+    <b>请再开一个标签页</b>对照观察。
+  </p>
+
+  <div class="row">
+    <input id="msg" placeholder="输入要广播的内容，回车发送……" autocomplete="off" />
+    <button id="sendWs">经 WebSocket 发送</button>
+    <button id="sendHttp">经 /publish 发送</button>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2><span id="wsDot" class="dot"></span> WebSocket <small>/ws</small></h2>
+      <small>双向：既能收服务端推送，也能主动上行。</small>
+      <div id="wsLog" class="log"></div>
+    </div>
+    <div class="card">
+      <h2><span id="sseDot" class="dot"></span> SSE <small>/sse</small></h2>
+      <small>单向：仅接收服务端推送，浏览器自动重连。</small>
+      <div id="sseLog" class="log"></div>
+    </div>
+  </div>
+
+  <script>
+    // —— 一个通用的日志追加器：把收到的 Event 渲染进对应面板 ——
+    function append(elId, obj) {
+      const box = document.getElementById(elId);
+      const line = document.createElement('div');
+      const t = obj.ts ? new Date(obj.ts).toLocaleTimeString() : '';
+      const kind = obj.kind || '?';
+      const payload = typeof obj.payload === 'object'
+        ? JSON.stringify(obj.payload) : String(obj.payload ?? '');
+      line.innerHTML = `<span class="ts">${t}</span> `
+        + `<span class="k">[${kind}]</span> ${payload}`;
+      box.appendChild(line);
+      box.scrollTop = box.scrollHeight; // 始终滚到最新
+    }
+    function setDot(id, on) {
+      const d = document.getElementById(id);
+      d.className = 'dot ' + (on ? 'on' : 'off');
+    }
+
+    // —— WebSocket 连接 ——
+    const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
+    let ws;
+    function connectWs() {
+      ws = new WebSocket(`${wsProto}://${location.host}/ws`);
+      ws.onopen = () => setDot('wsDot', true);
+      ws.onclose = () => { setDot('wsDot', false); setTimeout(connectWs, 1500); }; // 自己实现重连
+      ws.onerror = () => setDot('wsDot', false);
+      ws.onmessage = (e) => {
+        try { append('wsLog', JSON.parse(e.data)); }
+        catch { append('wsLog', { kind: 'raw', payload: e.data }); }
+      };
+    }
+    connectWs();
+
+    // —— SSE 连接：EventSource 自带自动重连，无需我们写重连 ——
+    const es = new EventSource('/sse');
+    es.onopen = () => setDot('sseDot', true);
+    es.onerror = () => setDot('sseDot', false); // 浏览器会自动尝试重连
+    // 通用消息（未指定 event 名的）走 onmessage；我们服务端会带 event=kind，
+    // 但也监听默认 message 以防万一。
+    es.onmessage = (e) => { try { append('sseLog', JSON.parse(e.data)); } catch {} };
+    // 服务端把 kind 作为 event 名，这里对几种已知类型分别监听。
+    ['publish', 'ws', 'lagged'].forEach((kind) => {
+      es.addEventListener(kind, (e) => {
+        try { append('sseLog', JSON.parse(e.data)); } catch {}
+      });
+    });
+
+    // —— 发送 ——
+    const input = document.getElementById('msg');
+    function sendViaWs() {
+      const v = input.value.trim();
+      if (!v || !ws || ws.readyState !== WebSocket.OPEN) return;
+      // 直接发文本；服务端会把它包成 Event 广播回来。
+      ws.send(JSON.stringify({ text: v }));
+      input.value = '';
+    }
+    function sendViaHttp() {
+      const v = input.value.trim();
+      if (!v) return;
+      fetch('/publish?msg=' + encodeURIComponent(v));
+      input.value = '';
+    }
+    document.getElementById('sendWs').onclick = sendViaWs;
+    document.getElementById('sendHttp').onclick = sendViaHttp;
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendViaWs(); });
+  </script>
+</body>
+</html>

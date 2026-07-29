@@ -1,0 +1,35 @@
+# 第 27 章配套示例：证书管理（ACME / SSL 自动签发与续期）。
+# 面板 / SaaS 给用户站点自动配 HTTPS 的主流做法：用 ACME 协议（Let's Encrypt）自动签发 +
+# 到期前自动续期。本 crate 把「能离线测的核心」（证书生命周期、HTTP-01 挑战应答逻辑）做成
+# 可运行可测，把「必须联网 + 公网域名的 ACME 下单」做成能编译的完整代码 + #[ignore] 集成测试。
+# 刻意不依赖 Postgres/Redis：证书生命周期是纯计算，无需持久化状态。
+[package]
+name = "cert_demo"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+axum = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+# rcgen：纯 Rust 生成密钥对 / 自签证书 / CSR。默认特性即 ring 后端，不需要 C/cmake 工具链。
+rcgen = "0.14"
+# x509-parser：解析 X.509 证书，读取有效期（not_after）用于续期判定。
+x509-parser = "0.18"
+# time：给自签证书手动设定 90 天有效期（对齐 Let's Encrypt，比 rcgen 默认的 4096 年更真实）。
+time = "0.3"
+# instant-acme：异步纯 Rust 的 ACME 客户端。默认后端是 aws-lc-rs（要 C/cmake），这里禁用默认
+# 特性、改用 ring，避免额外本地构建工具链依赖，也和 rcgen 的后端保持一致。
+# hyper-rustls 特性提供内置的 HTTPS 客户端（Account::builder 依赖它）。
+instant-acme = { version = "0.8", default-features = false, features = ["hyper-rustls", "ring"] }
+
+[dev-dependencies]
+# 集成测试用 axum 的内存直连（oneshot）发请求，无需真正监听端口，默认全跑。
+tower = { workspace = true, features = ["util"] }
+http-body-util = { workspace = true }
