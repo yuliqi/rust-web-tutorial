@@ -15,7 +15,7 @@ concurrency:
 
 
 jobs:
-  build-and-deploy:
+  deploy:
 
     name: Build and Deploy
 
@@ -24,14 +24,28 @@ jobs:
 
     steps:
 
-      # 拉取代码
+      # -----------------------------
+      # Checkout
+      # -----------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
 
-      # Node 环境
+      # -----------------------------
+      # Setup pnpm
+      # 必须在 setup-node cache pnpm 前
+      # -----------------------------
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+
+      # -----------------------------
+      # Setup Node.js
+      # -----------------------------
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -39,37 +53,43 @@ jobs:
           cache: pnpm
 
 
-      # pnpm 环境
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-
-      # 安装依赖
+      # -----------------------------
+      # Install dependencies
+      # -----------------------------
       - name: Install dependencies
         run: |
           pnpm install --frozen-lockfile
 
 
-      # 构建 VitePress
+      # -----------------------------
+      # Build VitePress
+      # -----------------------------
       - name: Build documentation
         run: |
           pnpm run docs:build
 
 
-      # 检查构建产物
+      # -----------------------------
+      # Verify output
+      # -----------------------------
       - name: Verify build output
         run: |
-          test -d docs/.vitepress/dist
+          if [ ! -d "docs/.vitepress/dist" ]; then
+            echo "Build output not found"
+            exit 1
+          fi
+
+          echo "Build output:"
           ls -lah docs/.vitepress/dist
 
 
-      # 发布 Cloudflare Pages
+      # -----------------------------
+      # Deploy Cloudflare Pages
+      # -----------------------------
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: rust-web-tutorial
           directory: docs/.vitepress/dist
