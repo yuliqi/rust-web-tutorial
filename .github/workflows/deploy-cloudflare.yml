@@ -1,0 +1,75 @@
+name: Deploy Rust Web Tutorial to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+
+# 防止重复部署
+concurrency:
+  group: cloudflare-pages-deploy
+  cancel-in-progress: true
+
+
+jobs:
+  build-and-deploy:
+
+    name: Build and Deploy
+
+    runs-on: ubuntu-latest
+
+
+    steps:
+
+      # 拉取代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+
+      # Node 环境
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+
+      # pnpm 环境
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+
+      # 安装依赖
+      - name: Install dependencies
+        run: |
+          pnpm install --frozen-lockfile
+
+
+      # 构建 VitePress
+      - name: Build documentation
+        run: |
+          pnpm run docs:build
+
+
+      # 检查构建产物
+      - name: Verify build output
+        run: |
+          test -d docs/.vitepress/dist
+          ls -lah docs/.vitepress/dist
+
+
+      # 发布 Cloudflare Pages
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          projectName: rust-web-tutorial
+          directory: docs/.vitepress/dist

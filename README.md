@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://rust-web-tutorial.vercel.app">📖 在线阅读</a>
+  <a href="https://rust-web-tutorial.llapp.com">📖 在线阅读</a>
   ·
   <a href="#quick-start">🚀 快速开始</a>
   ·
@@ -61,7 +61,7 @@ cd examples-middleware && docker compose up -d && cargo test --workspace
 
 ## 文档
 
-- **在线阅读**：[rust-web-tutorial.vercel.app](https://rust-web-tutorial.vercel.app)
+- **在线阅读**：[rust-web-tutorial.llapp.com](https://rust-web-tutorial.llapp.com)
 - **本地预览**：`pnpm install && pnpm docs:dev`（需 Node.js）
 - **语言章练习**：每个 crate 带 `src/exercises.rs`，`cargo test -p chXX -- --ignored` 自动判题
 
