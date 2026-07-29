@@ -22,18 +22,18 @@ cargo run -p todo_api
 
 | crate | 对应章节 | 学什么 |
 |-------|---------|--------|
-| `ch01_basics` | [第 1 章](../chapters/01-language-basics.md) | 变量、函数、控制流、let chains |
-| `ch02_ownership` | [第 2 章](../chapters/02-ownership.md) | 所有权、借用、切片 |
-| `ch03_structs_enums` | [第 3 章](../chapters/03-structs-enums.md) | 结构体、枚举、match、状态机 |
-| `ch04_errors` | [第 4 章](../chapters/04-error-handling.md) | Result、`?`、thiserror/anyhow |
-| `ch05_collections` | [第 5 章](../chapters/05-collections-iterators.md) | Vec/HashMap、迭代器链 |
-| `ch06_traits` | [第 6 章](../chapters/06-generics-traits.md) | 泛型、trait、静态/动态分发 |
-| `ch07_modules_lib/bin` | [第 7 章](../chapters/07-modules-workspace.md) | 模块、lib+bin 工程组织 |
-| `ch08_testing` | [第 8 章](../chapters/08-testing-quality.md) | 单测、集成测试、doctest |
-| `ch09_smart_pointers` | [第 9 章](../chapters/09-smart-pointers.md) | Box/Rc/RefCell、LazyLock |
-| `ch10_async` | [第 10 章](../chapters/10-concurrency-async.md) | 线程、tokio、async/await |
-| `ch11_http_client` | [第 11 章](../chapters/11-web-ecosystem.md) | reqwest、serde、Web 生态 |
-| `todo_api` | [第 12 章](../chapters/12-todo-api-project.md) | 综合项目：axum + sqlx REST API |
+| `ch01_basics` | [第 1 章](../docs/chapters/01-language-basics.md) | 变量、函数、控制流、let chains |
+| `ch02_ownership` | [第 2 章](../docs/chapters/02-ownership.md) | 所有权、借用、切片 |
+| `ch03_structs_enums` | [第 3 章](../docs/chapters/03-structs-enums.md) | 结构体、枚举、match、状态机 |
+| `ch04_errors` | [第 4 章](../docs/chapters/04-error-handling.md) | Result、`?`、thiserror/anyhow |
+| `ch05_collections` | [第 5 章](../docs/chapters/05-collections-iterators.md) | Vec/HashMap、迭代器链 |
+| `ch06_traits` | [第 6 章](../docs/chapters/06-generics-traits.md) | 泛型、trait、静态/动态分发 |
+| `ch07_modules_lib/bin` | [第 7 章](../docs/chapters/07-modules-workspace.md) | 模块、lib+bin 工程组织 |
+| `ch08_testing` | [第 8 章](../docs/chapters/08-testing-quality.md) | 单测、集成测试、doctest |
+| `ch09_smart_pointers` | [第 9 章](../docs/chapters/09-smart-pointers.md) | Box/Rc/RefCell、LazyLock |
+| `ch10_async` | [第 10 章](../docs/chapters/10-concurrency-async.md) | 线程、tokio、async/await |
+| `ch11_http_client` | [第 11 章](../docs/chapters/11-web-ecosystem.md) | reqwest、serde、Web 生态 |
+| `todo_api` | [第 12 章](../docs/chapters/12-todo-api-project.md) | 综合项目：axum + sqlx REST API |
 
 ## 练习怎么做
 

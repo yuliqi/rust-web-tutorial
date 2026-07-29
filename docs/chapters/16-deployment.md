@@ -3,8 +3,8 @@
 > 配套产物（都有逐行注释）：
 > - `examples-middleware/todo_api_pg/Dockerfile` —— 多阶段构建
 > - `examples-middleware/deploy/k8s/todo-api-pg.yaml` —— k8s 最小清单
-> - `.github/workflows/ci.yml` —— CI 质量门禁
-> - `todo_api_pg` 源码 —— 优雅停机（main.rs）与双探针（routes/health.rs）已实装
+> - `examples-middleware/deploy/ci.yml` —— CI 质量门禁
+> - `examples-middleware/todo_api_pg` 源码 —— 优雅停机（main.rs）与双探针（routes/health.rs）已实装
 
 ## 学习目标
 
@@ -91,7 +91,7 @@ k8s 决定停止实例
 
 ## 16.6 CI：质量门禁自动化
 
-`.github/workflows/ci.yml` 把第 8 章的三件套（fmt / clippy `-D warnings` / test）变成每次 push 的强制关卡，两个值得学的点：
+`examples-middleware/deploy/ci.yml` 把第 8 章的三件套（fmt / clippy `-D warnings` / test）变成每次 push 的强制关卡，两个值得学的点：
 
 - **依赖缓存**（rust-cache）：CI 提速的第一杠杆，原理同 Docker 的依赖层缓存
 - **service 容器**：CI 里起真实 Postgres/Redis，把本地标 `#[ignore]` 的集成测试也跑起来——「离线单测 + 在线集成测试」两层结构在 CI 里完整落地

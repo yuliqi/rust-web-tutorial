@@ -27,11 +27,15 @@ rustup 1.29.0 (28d1352db 2026-03-05)
 
 ```text
 rust-web-tutorial/
-├── README.md                 # 本文件
+├── .vitepress/               # VitePress 文档构建配置
+├── README.md                 # 仓库总说明
 ├── rust-toolchain.toml       # 钉死 1.97.1 工具链
-├── chapters/                 # 教程正文
-├── appendix/                 # 附录
-├── examples-middleware/      # 第 14-15 章：中间件示例（独立 workspace，需 Docker）
+├── docs/                     # 教程文档
+│   ├── README.md             # 本文件
+│   ├── chapters/             # 教程正文
+│   ├── appendix/             # 附录
+│   └── index.md              # VitePress 首页
+├── examples-middleware/      # 第 14-29 章：中间件示例（独立 workspace，需 Docker）
 │   ├── docker-compose.yml    # Postgres/MySQL/Redis/RabbitMQ/etcd 一键启动
 │   ├── todo_api_pg/          # PostgreSQL 版 Todo API
 │   ├── mysql_demo/           # MySQL 方言差异

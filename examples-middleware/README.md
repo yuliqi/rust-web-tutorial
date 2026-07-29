@@ -7,23 +7,23 @@
 
 | crate | 章节 | 学什么 |
 |-------|------|--------|
-| `todo_api_pg` | [第 14.3 节](../chapters/14-middleware-production.md) | SQLite → PostgreSQL 迁移、`RETURNING`、连接池 |
-| `mysql_demo` | [第 14.4 节](../chapters/14-middleware-production.md) | sqlx + MySQL 方言差异 |
-| `redis_cache` | [第 14.5 节](../chapters/14-middleware-production.md) | cache-aside 模式、TTL、缓存三坑 |
-| `mq_rabbit` | [第 14.6 节](../chapters/14-middleware-production.md) | RabbitMQ 生产/消费、ack、幂等 |
-| `cluster_demo` | [第 15 章](../chapters/15-cluster-distributed.md) | etcd 服务发现、客户端负载均衡、Redis 分布式锁 |
-| `todo_api_saas` | [第 17](../chapters/17-multitenancy-auth.md)–[18 章](../chapters/18-quota-billing-api.md) | 多租户隔离、JWT/RBAC、配额限流、幂等键、计费 webhook |
-| `api_crypto` | [第 19 章](../chapters/19-api-encryption.md) | 接口报文加密：RSA+AES 混合信封、Web Crypto 前端（无需 Docker） |
-| `db_crypto` | [第 20 章](../chapters/20-data-at-rest.md) | 数据库字段级 AES-GCM 加密、HMAC 盲索引、密钥版本轮换 |
-| `scheduler_demo` | [第 21 章](../chapters/21-scheduled-jobs.md) | 定时任务：interval/cron 调度、分布式锁+唯一约束集群去重、优雅停机 |
-| `cloud_sync` | [第 22 章](../chapters/22-cloud-asset-sync.md) | 多云资产同步：CloudProvider trait、加密凭证、归一化 upsert、限流+锁 |
-| `iam_demo` | [第 23 章](../chapters/23-2fa-iam.md) | 两步验证(TOTP)、层级子账号、资源级授权(子不越父) |
-| `realtime_demo` | [第 24 章](../chapters/24-realtime-websocket.md) | WebSocket 双向 + SSE 单向推送、broadcast 广播、心跳（无需 Docker） |
-| `license_demo` | [第 25 章](../chapters/25-software-license.md) | 软件许可：离线 ed25519 签名授权 + 在线激活/心跳/吊销（无需 Docker） |
-| `webterm_demo` | [第 26 章](../chapters/26-web-terminal-bastion.md) | Web 终端/堡垒机：PTY over WebSocket、会话录制、访问审计 |
-| `cert_demo` | [第 27 章](../chapters/27-certificate-acme.md) | 证书管理：ACME 下单、HTTP-01 挑战、续期判定（离线核心可跑） |
-| `monitor_demo` | [第 28 章](../chapters/28-realtime-monitoring.md) | 实时监控：sysinfo 采集、Prometheus 格式、SSE 仪表盘、阈值告警 |
-| `plugin_demo` | [第 29 章](../chapters/29-appstore-plugins.md) | 应用商店(compose 模板渲染)+ 插件机制(子进程 stdio JSON-RPC)（无需 Docker） |
+| `todo_api_pg` | [第 14.3 节](../docs/chapters/14-middleware-production.md) | SQLite → PostgreSQL 迁移、`RETURNING`、连接池 |
+| `mysql_demo` | [第 14.4 节](../docs/chapters/14-middleware-production.md) | sqlx + MySQL 方言差异 |
+| `redis_cache` | [第 14.5 节](../docs/chapters/14-middleware-production.md) | cache-aside 模式、TTL、缓存三坑 |
+| `mq_rabbit` | [第 14.6 节](../docs/chapters/14-middleware-production.md) | RabbitMQ 生产/消费、ack、幂等 |
+| `cluster_demo` | [第 15 章](../docs/chapters/15-cluster-distributed.md) | etcd 服务发现、客户端负载均衡、Redis 分布式锁 |
+| `todo_api_saas` | [第 17](../docs/chapters/17-multitenancy-auth.md)–[18 章](../docs/chapters/18-quota-billing-api.md) | 多租户隔离、JWT/RBAC、配额限流、幂等键、计费 webhook |
+| `api_crypto` | [第 19 章](../docs/chapters/19-api-encryption.md) | 接口报文加密：RSA+AES 混合信封、Web Crypto 前端（无需 Docker） |
+| `db_crypto` | [第 20 章](../docs/chapters/20-data-at-rest.md) | 数据库字段级 AES-GCM 加密、HMAC 盲索引、密钥版本轮换 |
+| `scheduler_demo` | [第 21 章](../docs/chapters/21-scheduled-jobs.md) | 定时任务：interval/cron 调度、分布式锁+唯一约束集群去重、优雅停机 |
+| `cloud_sync` | [第 22 章](../docs/chapters/22-cloud-asset-sync.md) | 多云资产同步：CloudProvider trait、加密凭证、归一化 upsert、限流+锁 |
+| `iam_demo` | [第 23 章](../docs/chapters/23-2fa-iam.md) | 两步验证(TOTP)、层级子账号、资源级授权(子不越父) |
+| `realtime_demo` | [第 24 章](../docs/chapters/24-realtime-websocket.md) | WebSocket 双向 + SSE 单向推送、broadcast 广播、心跳（无需 Docker） |
+| `license_demo` | [第 25 章](../docs/chapters/25-software-license.md) | 软件许可：离线 ed25519 签名授权 + 在线激活/心跳/吊销（无需 Docker） |
+| `webterm_demo` | [第 26 章](../docs/chapters/26-web-terminal-bastion.md) | Web 终端/堡垒机：PTY over WebSocket、会话录制、访问审计 |
+| `cert_demo` | [第 27 章](../docs/chapters/27-certificate-acme.md) | 证书管理：ACME 下单、HTTP-01 挑战、续期判定（离线核心可跑） |
+| `monitor_demo` | [第 28 章](../docs/chapters/28-realtime-monitoring.md) | 实时监控：sysinfo 采集、Prometheus 格式、SSE 仪表盘、阈值告警 |
+| `plugin_demo` | [第 29 章](../docs/chapters/29-appstore-plugins.md) | 应用商店(compose 模板渲染)+ 插件机制(子进程 stdio JSON-RPC)（无需 Docker） |
 
 ## 使用方式
 
@@ -78,7 +78,7 @@ docker compose down -v
 | `todo_api_pg/Dockerfile` | 多阶段构建的生产镜像（依赖层缓存 + 非 root 运行） |
 | `.dockerignore` | 构建上下文瘦身（target/ 绝不能进上下文） |
 | `deploy/k8s/todo-api-pg.yaml` | k8s 最小清单：双副本滚动更新 + 双探针 + Secret |
-| `../.github/workflows/ci.yml` | CI 门禁：fmt/clippy/test + service 容器跑集成测试 |
+| `deploy/ci.yml` | CI 门禁：fmt/clippy/test + service 容器跑集成测试 |
 
 ```bash
 # 构建并本地试跑生产镜像（挂进 compose 网络，用服务名访问 Postgres）
