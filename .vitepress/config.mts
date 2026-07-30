@@ -1,6 +1,13 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
+  head: [
+    ['script', { async: '', src: 'https://www.googletagmanager.com/gtag/js?id=G-WE9F14MPK6' }],
+    ['script', {}, `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-WE9F14MPK6');`]
+  ],
   vite: {
     plugins: [
       {
