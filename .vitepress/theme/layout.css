@@ -1,0 +1,112 @@
+/* Keep the default theme intact and use more of the desktop viewport. */
+@media (min-width: 960px) {
+  :root {
+    --vp-layout-max-width: 1660px;
+    --vp-sidebar-width: 224px;
+  }
+
+  .VPDoc.has-sidebar {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .VPDoc > .container > .content {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+}
+
+/* Retain the page outline while reducing its reserved width and gutters. */
+@media (min-width: 1280px) {
+  .VPDoc.has-aside > .container > .content {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .VPDoc.has-aside > .container > .content > .content-container {
+    width: 100%;
+    max-width: 1120px;
+  }
+
+  .VPDoc.has-aside > .container > .aside {
+    flex: 0 0 208px;
+    padding-left: 16px;
+    max-width: 208px;
+  }
+
+  .VPDoc.has-aside > .container > .aside > .aside-container,
+  .VPDoc.has-aside > .container > .aside > .aside-curtain {
+    width: 192px;
+  }
+}
+
+/* Prevent VitePress's centered-layout formula from shrinking columns below
+   their configured widths when the viewport is narrower than the layout cap. */
+@media (min-width: 1440px) {
+  .Layout .VPContent.has-sidebar {
+    padding-right: max(0px, calc((100vw - var(--vp-layout-max-width)) / 2));
+    padding-left: max(
+      var(--vp-sidebar-width),
+      calc((100vw - var(--vp-layout-max-width)) / 2 + var(--vp-sidebar-width))
+    );
+  }
+
+  .Layout .VPSidebar {
+    width: max(
+      var(--vp-sidebar-width),
+      calc(
+        (100% - (var(--vp-layout-max-width) - 64px)) / 2 +
+          var(--vp-sidebar-width) - 32px
+      )
+    );
+  }
+}
+
+
+/* Copy page：标题右侧 */
+
+.vp-doc {
+  position: relative;
+}
+
+.vp-doc .markdown-copy-buttons {
+  position: absolute;
+  top: 3px;
+  right: 0;
+  width: auto;
+  margin: 0;
+  justify-content: flex-end;
+}
+
+.vp-doc .markdown-copy-buttons-inner {
+  margin: 0;
+}
+
+.vp-doc .markdown-copy-buttons .copy-page {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.vp-doc .markdown-copy-buttons .chevron-wrapper {
+  padding: 0 8px;
+}
+
+.vp-doc .markdown-copy-buttons .download-btn {
+  padding: 6px 9px;
+}
+
+.vp-doc > h1:first-child {
+  padding-right: 190px;
+}
+
+@media (max-width: 640px) {
+  .vp-doc .markdown-copy-buttons {
+    position: static;
+    margin: 10px 0 18px;
+    justify-content: flex-start;
+  }
+
+  .vp-doc > h1:first-child {
+    padding-right: 0;
+  }
+}

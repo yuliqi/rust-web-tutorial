@@ -1,9 +1,10 @@
 {
   "name": "rust-web-tutorial",
   "private": true,
-  "packageManager": "pnpm@10.15.0",
+  "packageManager": "pnpm@11.25.0",
   "devDependencies": {
-    "vitepress": "2.0.0-alpha.18"
+    "vitepress": "2.0.0-alpha.18",
+    "vitepress-plugin-llms": "^1.13.5"
   },
   "scripts": {
     "docs:dev": "vitepress dev .",
